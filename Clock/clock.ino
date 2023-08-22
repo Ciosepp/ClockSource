@@ -12,43 +12,45 @@
 
 #define IN_PP_PIN 16
 #define IN_STOP_PIN 17
-bool state = false; // false => stop/pause, true => play
+bool State = false; // false => stop/pause, true => play
 bool flag1= false, flag2= false;
-
-#define OUT_PLAY_PIN
 
 #define R_LED_PLAY_PIN 11
 #define G_LED_PLAY_PIN 12
 #define R_LED_RST_PIN 10
 
 #define OUT_CK_PIN 2
-#define SYNC_PIN  3
+#define SYNC_PIN  1
+#define OUT_PLAY_PIN 3
+#define OUT_RST_PIN 0
 
 #include <LiquidCrystal.h>
 #define rs 9
-#define en 8
-#define d4 7
-#define d5 6
-#define d6 5
-#define d7 4
+#define en 4
+#define d4 8
+#define d5 7
+#define d6 6
+#define d7 5
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 #include <rEncoder.h>
-#define pinA
-#define pinB
-#define pinP
+#define pinA 13
+#define pinB 14
+#define pinP 15
 rEncoder ENC(pinA, pinB, pinP,false);
 
 #include <Timer.h>
 
 Timer T(MILLIS);
 
-float BPM = 120.0, step = 0.5;
+float BPM = 120.0, Step = 0.5;
 #define maxBPM 	300
 #define minBPM	60 
 
 int multiplier = 1; // 1,2,4
 
+bool updateVal = false;
+const bool hiState = false;
 void setup(){
 	pinMode(IN_PP_PIN, INPUT_PULLUP); 	//play pause button GPI
 	pinMode(IN_STOP_PIN, INPUT_PULLUP); //Stop/ reset button GPI
@@ -61,17 +63,20 @@ void setup(){
 }	
 
 void loop(){
-	BPM = ENC.updateEncoderMult(BPM,step);
+	BPM = ENC.updateEncoderMult(BPM,Step);
 	updateBPM();
 
-	if(ENC.updateValue == true){
+	if(ENC.getPBState() == hiState && updateVal == false){
 		updateLCD();
-		ENC.updateValue = false;
+		updateVal = true;
 	}
+   if(ENC.getPBState() == !hiState && updateVal == true){
+        updateVal = false;
+   }
 
-	if(BPM >= 200) step = 1;
+	if(BPM >= 200) Step = 1;
 	else{
-		step = 0.5;
+Step = 0.5;
 	}
 
 	//Play - pause control
@@ -80,8 +85,8 @@ void loop(){
 		flag1 = true;
 	}
 	if (digitalRead(IN_PP_PIN) &&flag1){
-		state = !state;
-		digitalWrite(OUT_PLAY_PIN, state);
+		State = !State;
+		digitalWrite(OUT_PLAY_PIN, State);
 		flag1 = false;
 	}
 
@@ -116,4 +121,9 @@ void updateLCD(){
 	else
 		lcd.setCursor(2,0);
 	lcd.print(BPM,1);
+}
+void setColors(bool R1, bool G1, bool R2){
+    digitalWrite(R_LED_PLAY_PIN, R1);
+    digitalWrite(G_LED_PLAY_PIN, G1);
+    digitalWrite(R_LED_RST_PIN, R2);
 }
