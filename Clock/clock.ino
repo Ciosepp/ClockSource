@@ -37,13 +37,13 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #define pinA 13
 #define pinB 14
 #define pinP 15
-rEncoder ENC(pinA, pinB, pinP,false);
+rEncoder ENC(pinA, pinB, pinP,true);
 
 #include <Timer.h>
 
 Timer T(MILLIS);
 
-float BPM = 120.0, Step = 0.5;
+float BPM = 119.5, Step = 0.5;
 #define maxBPM 	300
 #define minBPM	60 
 
@@ -57,15 +57,19 @@ void setup(){
 
 	pinMode(OUT_PLAY_PIN, OUTPUT);
 	pinMode(OUT_RST_PIN, OUTPUT);
+    pinMode(R_LED_PLAY_PIN, OUTPUT);
+   
 
 	pinMode(OUT_CK_PIN,	OUTPUT);		//tip of 3.5mm jack
 	pinMode(SYNC_PIN,	OUTPUT);		//cener of 3.5mm jack
+
+   Serial.begin(115200);
 }	
 
 void loop(){
 	BPM = ENC.updateEncoderMult(BPM,Step);
 	updateBPM();
-
+    digitalWrite(R_LED_PLAY_PIN,T.getClock());
 	if(ENC.getPBState() == hiState && updateVal == false){
 		updateLCD();
 		updateVal = true;
@@ -75,9 +79,9 @@ void loop(){
    }
 
 	if(BPM >= 200) Step = 1;
-	else{
-Step = 0.5;
-	}
+	else
+        Step = 0.5;
+
 
 	//Play - pause control
 
@@ -107,8 +111,12 @@ Step = 0.5;
 
 float oldBPM;
 void updateBPM(){
+    if(BPM < minBPM) BPM = minBPM;
+    if(BPM > maxBPM) BPM = maxBPM;
 	if (BPM !=oldBPM){
+    
 		T.setClock((BPM/60.0)*1000*multiplier, 50);
+		 updateLCD();
 		oldBPM = BPM;
 	}
 }
