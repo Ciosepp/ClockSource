@@ -58,6 +58,7 @@ void setup(){
 	pinMode(OUT_PLAY_PIN, OUTPUT);
 	pinMode(OUT_RST_PIN, OUTPUT);
     pinMode(R_LED_PLAY_PIN, OUTPUT);
+    pinMode(G_LED_PLAY_PIN, OUTPUT);
    
 
 	pinMode(OUT_CK_PIN,	OUTPUT);		//tip of 3.5mm jack
@@ -69,7 +70,8 @@ void setup(){
 void loop(){
 	BPM = ENC.updateEncoderMult(BPM,Step);
 	updateBPM();
-    digitalWrite(R_LED_PLAY_PIN,T.getClock());
+    digitalWrite(R_LED_PLAY_PIN, !T.getClock());
+    digitalWrite(G_LED_PLAY_PIN, T.getClock());
 	if(ENC.getPBState() == hiState && updateVal == false){
 		updateLCD();
 		updateVal = true;
@@ -115,7 +117,7 @@ void updateBPM(){
     if(BPM > maxBPM) BPM = maxBPM;
 	if (BPM !=oldBPM){
     
-		T.setClock((BPM/60.0)*1000*multiplier, 50);
+		T.setClock(1000/((BPM/60.0)*multiplier), 50);
 		 updateLCD();
 		oldBPM = BPM;
 	}
